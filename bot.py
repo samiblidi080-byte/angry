@@ -1,5 +1,6 @@
 import os
 import logging
+import asyncio
 from PIL import Image, ImageDraw
 from pyrogram import Client, filters
 from pyrogram.types import Message
@@ -10,6 +11,13 @@ logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=lo
 API_ID = int(os.getenv("API_ID", "12345678"))
 API_HASH = os.getenv("API_HASH", "YOUR_API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8810241054:AAESPrr7qDHm1J3S3ISAgWnKkNkwg_2UHrQ")
+
+# إصلاح توافق حلقة الأحداث مع بايثون الحديث على السيرفر
+try:
+    asyncio.get_running_loop()
+except RuntimeError:
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
 
 app = Client(
     "ManhwaProBot",
@@ -22,7 +30,7 @@ app = Client(
 async def start_handler(client, message: Message):
     await message.reply_text(
         "👋 **أهلاً بك في بوت معالجة وترجمة المانهوا السحابي!**\n\n"
-        "🌐 البوت يعمل الآن 24/7 على السيرفر.\n"
+        "🌐 البوت يعمل الآن بنجاح تام على السيرفر 24/7.\n"
         "📌 أرسل لي أي صورة صفحة مانهوا وسأقوم بمعالجتها لك فوراً!"
     )
 
@@ -37,7 +45,6 @@ async def process_image(client, message: Message):
         
         draw = ImageDraw.Draw(img)
         
-        # رسم قالب الترجمة التوضيحي على الصورة
         box_x1, box_y1 = int(width * 0.1), int(height * 0.05)
         box_x2, box_y2 = int(width * 0.9), int(height * 0.15)
         
