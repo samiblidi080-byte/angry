@@ -1,20 +1,14 @@
 import os
 import logging
-from PIL import Image, ImageDraw, ImageFont
-from googletrans import Translator
+from PIL import Image, ImageDraw
 from pyrogram import Client, filters
 from pyrogram.types import Message
 import io
 
-# إعدادات السجلات لمراقبة أداء البوت على السيرفر
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO
-)
+logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO)
 
-# بيانات البوت الخاصة بك
-API_ID = int(os.getenv("API_ID", "12345678"))          # ضع API_ID هنا أو في متغيرات الاستضافة
-API_HASH = os.getenv("API_HASH", "YOUR_API_HASH")    # ضع API_HASH هنا أو في متغيرات الاستضافة
+API_ID = int(os.getenv("API_ID", "12345678"))
+API_HASH = os.getenv("API_HASH", "YOUR_API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8810241054:AAESPrr7qDHm1J3S3ISAgWnKkNkwg_2UHrQ")
 
 app = Client(
@@ -24,61 +18,48 @@ app = Client(
     bot_token=BOT_TOKEN
 )
 
-translator = Translator()
-
 @app.on_message(filters.command("start"))
 async def start_handler(client, message: Message):
-    welcome_text = (
-        "👋 **أهلاً بك في بوت ترجمة المانهوا السحابي!**\n\n"
-        "🌐 البوت يعمل ومستضاف على السيرفر لخدمتك 24/7.\n\n"
-        "📌 **طريقة الاستخدام:**\n"
-        "فقط أرسل لي **صورة صفحة مانهوا** وسأقوم بترجمة النصوص وإرجاعها لك فوراً!"
+    await message.reply_text(
+        "👋 **أهلاً بك في بوت معالجة وترجمة المانهوا السحابي!**\n\n"
+        "🌐 البوت يعمل الآن 24/7 على السيرفر.\n"
+        "📌 أرسل لي أي صورة صفحة مانهوا وسأقوم بمعالجتها لك فوراً!"
     )
-    await message.reply_text(welcome_text)
 
 @app.on_message(filters.photo)
-async def translate_page(client, message: Message):
-    status_msg = await message.reply_text("⏳ **جاري استقبال وتحليل الصورة وترجمتها...**")
+async def process_image(client, message: Message):
+    status_msg = await message.reply_text("⏳ **جاري استقبال الصورة ومعالجتها...**")
     
     try:
-        # تحميل الصورة المرفوعة من تليغرام مباشرة إلى الذاكرة المؤقتة
         photo = await message.download(in_memory=True)
-        
-        # فتح الصورة باستخدام مكتبة PIL
         img = Image.open(photo).convert("RGB")
         width, height = img.size
         
         draw = ImageDraw.Draw(img)
         
-        # ترجمة نموذجية توضيحية فورية
-        sample_text = "Chapter Translation Ready"
-        translated = translator.translate(sample_text, dest='ar')
-        
-        # رسم مستطيل الترجمة على الصورة
+        # رسم قالب الترجمة التوضيحي على الصورة
         box_x1, box_y1 = int(width * 0.1), int(height * 0.05)
-        box_x2, box_y2 = int(width * 0.9), int(height * 0.12)
+        box_x2, box_y2 = int(width * 0.9), int(height * 0.15)
         
         draw.rectangle([box_x1, box_y1, box_x2, box_y2], fill="white", outline="black")
-        draw.text((box_x1 + 10, box_y1 + 10), f"ترجمة: {translated.text}", fill="black")
+        draw.text((box_x1 + 15, box_y1 + 15), "ترجمة الفصل: جاهزة", fill="black")
         
-        # حفظ الصورة الناتجة في الذاكرة للإرسال الفوري
         output_buffer = io.BytesIO()
         img.save(output_buffer, format="JPEG")
         output_buffer.seek(0)
         
-        await status_msg.edit_text("✨ **تمت الترجمة بنجاح! جاري الإرسال...**")
+        await status_msg.edit_text("✨ **تمت المعالجة بنجاح!**")
         
         await client.send_photo(
             chat_id=message.chat.id,
             photo=output_buffer,
-            caption="🌐 **تمت المعالجة عبر السيرفر السحابي بنجاح!**"
+            caption="🌐 **تم إرسال الصورة المعالجة من السيرفر بنجاح.**"
         )
         
         await status_msg.delete()
         
     except Exception as e:
-        await status_msg.edit_text(f"❌ حدث خطأ أثناء المعالجة على السيرفر: `{e}`")
+        await status_msg.edit_text(f"❌ حدث خطأ أثناء المعالجة: `{e}`")
 
 if __name__ == "__main__":
-    print("🚀 البوت يعمل الآن على السيرفر السحابي...")
     app.run()
