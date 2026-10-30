@@ -1,6 +1,17 @@
+import asyncio
+import sys
+
+# ضبط حلقة الأحداث أولاً وقبل استيراد أي مكتبة لضمان التوافق مع بايثون الحديث
+try:
+    loop = asyncio.get_event_loop()
+    if loop.is_closed():
+        raise RuntimeError()
+except RuntimeError:
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
 import os
 import logging
-import asyncio
 from PIL import Image, ImageDraw
 from pyrogram import Client, filters, idle
 from pyrogram.types import Message
@@ -11,10 +22,6 @@ logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=lo
 API_ID = int(os.getenv("API_ID", "12345678"))
 API_HASH = os.getenv("API_HASH", "YOUR_API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8810241054:AAESPrr7qDHm1J3S3ISAgWnKkNkwg_2UHrQ")
-
-# إنشاء وتعيين حلقة الأحداث يدوياً لضمان التوافق التام مع السيرفر
-loop = asyncio.new_event_loop()
-asyncio.set_event_loop(loop)
 
 app = Client(
     "ManhwaProBot",
