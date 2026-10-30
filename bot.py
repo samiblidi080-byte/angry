@@ -1,80 +1,70 @@
-import asyncio
-import sys
-
-# ضبط حلقة الأحداث أولاً وقبل استيراد أي مكتبة لضمان التوافق مع بايثون الحديث
-try:
-    loop = asyncio.get_event_loop()
-    if loop.is_closed():
-        raise RuntimeError()
-except RuntimeError:
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-
 import os
 import logging
-from PIL import Image, ImageDraw
-from pyrogram import Client, filters, idle
+from pyrogram import Client, filters
 from pyrogram.types import Message
-import io
+from PIL import Image
 
-logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO)
+# 1. إعداد السجلات (Logging) لمتابعة حالة البوت بدقة
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
-# ضع هنا الـ API_ID و API_HASH الحقيقيين الخاصين بك من my.telegram.org
-API_ID = int(os.getenv("API_ID", "30392142"))          # ضع رقم الـ API_ID هنا
-API_HASH = os.getenv("API_HASH", "b4990613e615ca3cd05404b65a3e3f55")    # ضع الـ API_HASH هنا بين علامتي تنصيص
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8813742920:AAEMMp6gHoKM84TpoirgGvEuvkcLpCfCn38")
+# 2. بيانات الاتصال والمعلومات الخاصة بك
+API_ID = 30392142
+API_HASH = "b4990613e615ca3cd05404b65a3e3f55"
+BOT_TOKEN = "8813742920:AAEMMp6gHoKM84TpoirgGvEuvkcLpCfCn38"
 
+# تهيئة عميل البوت
 app = Client(
-    "ManhwaProBot",
+    "manhwa_translator_bot",
     api_id=API_ID,
     api_hash=API_HASH,
     bot_token=BOT_TOKEN
 )
 
 @app.on_message(filters.command("start"))
-async def start_handler(client, message: Message):
-    await message.reply_text(
-        "👋 **أهلاً بك في بوت معالجة وترجمة المانهوا السحابي!**\n\n"
-        "🌐 البوت يعمل الآن بنجاح تام على السيرفر 24/7.\n"
-        "📌 أرسل لي أي صورة صفحة مانهوا وسأقوم بمعالجتها لك فوراً!"
+async def start_command(client: Client, message: Message):
+    """رسالة الترحيب عند بدء البوت"""
+    user_name = message.from_user.first_name if message.from_user else "صديقي"
+    welcome_text = (
+        f"أهلاً بك يا {user_name} في بوت ترجمة المانها والمانهوا! 🎨📖\n\n"
+        "أرسل لي أي صورة لفصل مانهوا (صورة عادية)، وسأقوم بمعالجتها واستقبالها فوراً."
     )
+    await message.reply_text(welcome_text)
+    logger.info(f"تم استقبال أمر البدء من المستخدم: {message.from_user.id if message.from_user else 'unknown'}")
 
 @app.on_message(filters.photo)
-async def process_image(client, message: Message):
-    status_msg = await message.reply_text("⏳ **جاري استقبال الصورة ومعالجتها...**")
+async def handle_photo(client: Client, message: Message):
+    """معالجة الصور المرسلة من المستخدم"""
+    processing_msg = await message.reply_text("⏳ جاري تحميل وتنزيل الصورة للمعالجة...")
     
     try:
-        photo = await message.download(in_memory=True)
-        img = Image.open(photo).convert("RGB")
-        width, height = img.size
+        # تحميل الصورة المرسلة إلى مجلد مؤقت
+        photo_path = await message.download()
+        logger.info(f"تم تحميل الصورة بنجاح إلى المسار: {photo_path}")
         
-        draw = ImageDraw.Draw(img)
-        
-        box_x1, box_y1 = int(width * 0.1), int(height * 0.05)
-        box_x2, box_y2 = int(width * 0.9), int(height * 0.15)
-        
-        draw.rectangle([box_x1, box_y1, box_x2, box_y2], fill="white", outline="black")
-        draw.text((box_x1 + 15, box_y1 + 15), "ترجمة الفصل: جاهزة", fill="black")
-        
-        output_buffer = io.BytesIO()
-        img.save(output_buffer, format="JPEG")
-        output_buffer.seek(0)
-        
-        await status_msg.edit_text("✨ **تمت المعالجة بنجاح!**")
-        
-        await client.send_photo(
-            chat_id=message.chat.id,
-            photo=output_buffer,
-            caption="🌐 **تم إرسال الصورة المعالجة من السيرفر بنجاح.**"
+        # فتح الصورة باستخدام مكتبة Pillow للتحقق منها وتعديلها إن أمكن
+        with Image.open(photo_path) as img:
+            width, height = img.size
+            logger.info(- f"أبعاد الصورة: {width}x{height}")
+
+        # هنا يمكنك إضافة كود الترجمة ومعالجة النصوص لاحقاً
+        await processing_msg.edit_text(
+            "✅ تم استقبال الصورة وتحميلها بنجاح على السيرفر!\n"
+            f"📐 الأبعاد: {width}x{height} بكسل.\n\n"
+            "🔄 (جاري ربط محرك الترجمة الذكي...)"
         )
         
-        await status_msg.delete()
-        
+        # تنظيف الملف المؤقت بعد الانتهاء
+        if os.path.exists(photo_path):
+            os.remove(photo_path)
+            
     except Exception as e:
-        await status_msg.edit_text(f"❌ حدث خطأ أثناء المعالجة: `{e}`")
+        logger.error(f"حدث خطأ أثناء معالجة الصورة: {e}")
+        await processing_msg.edit_text(f"❌ حدث خطأ أثناء معالجة الصورة: {str(e)}")
 
 if __name__ == "__main__":
-    app.start()
-    print("🚀 البوت يعمل الآن على السيرفر بنجاح!")
-    idle()
-    app.stop()
+    logger.info("🚀 جاري إقلاع وتشغيل البوت...")
+    app.run()
