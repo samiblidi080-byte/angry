@@ -19,9 +19,10 @@ import io
 
 logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO)
 
-API_ID = int(os.getenv("API_ID", "12345678"))
-API_HASH = os.getenv("API_HASH", "YOUR_API_HASH")
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8810241054:AAESPrr7qDHm1J3S3ISAgWnKkNkwg_2UHrQ")
+# ضع هنا الـ API_ID و API_HASH الحقيقيين الخاصين بك من my.telegram.org
+API_ID = int(os.getenv("API_ID", "29481203"))          # ضع رقم الـ API_ID هنا
+API_HASH = os.getenv("API_HASH", "YOUR_API_HASH")    # ضع الـ API_HASH هنا بين علامتي تنصيص
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8813742920:AAEMMp6gHoKM84TpoirgGvEuvkcLpCfCn38")
 
 app = Client(
     "ManhwaProBot",
