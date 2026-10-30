@@ -2,7 +2,7 @@ import os
 import logging
 import asyncio
 from PIL import Image, ImageDraw
-from pyrogram import Client, filters
+from pyrogram import Client, filters, idle
 from pyrogram.types import Message
 import io
 
@@ -12,12 +12,9 @@ API_ID = int(os.getenv("API_ID", "12345678"))
 API_HASH = os.getenv("API_HASH", "YOUR_API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8810241054:AAESPrr7qDHm1J3S3ISAgWnKkNkwg_2UHrQ")
 
-# إصلاح توافق حلقة الأحداث مع بايثون الحديث على السيرفر
-try:
-    asyncio.get_running_loop()
-except RuntimeError:
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+# إنشاء وتعيين حلقة الأحداث يدوياً لضمان التوافق التام مع السيرفر
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
 
 app = Client(
     "ManhwaProBot",
@@ -69,4 +66,7 @@ async def process_image(client, message: Message):
         await status_msg.edit_text(f"❌ حدث خطأ أثناء المعالجة: `{e}`")
 
 if __name__ == "__main__":
-    app.run()
+    app.start()
+    print("🚀 البوت يعمل الآن على السيرفر بنجاح!")
+    idle()
+    app.stop()
