@@ -20,8 +20,8 @@ import io
 logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO)
 
 # ضع هنا الـ API_ID و API_HASH الحقيقيين الخاصين بك من my.telegram.org
-API_ID = int(os.getenv("API_ID", "29481203"))          # ضع رقم الـ API_ID هنا
-API_HASH = os.getenv("API_HASH", "YOUR_API_HASH")    # ضع الـ API_HASH هنا بين علامتي تنصيص
+API_ID = int(os.getenv("API_ID", "30392142"))          # ضع رقم الـ API_ID هنا
+API_HASH = os.getenv("API_HASH", "b4990613e615ca3cd05404b65a3e3f55")    # ضع الـ API_HASH هنا بين علامتي تنصيص
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8813742920:AAEMMp6gHoKM84TpoirgGvEuvkcLpCfCn38")
 
 app = Client(
